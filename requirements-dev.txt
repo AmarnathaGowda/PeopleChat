@@ -1,0 +1,11 @@
+# Development tools
+ipython==8.29.0
+jupyter==1.1.1
+watchdog==6.0.0
+
+# Documentation
+mkdocs==1.6.1
+mkdocs-material==9.5.44
+
+# Load testing
+locust==2.32.2

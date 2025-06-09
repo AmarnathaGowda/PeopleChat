@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.env
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+data/cache/
+logs/
+*.log
+.DS_Store
+secrets/
+*.key
+*.pem
+
+# Azure
+local.settings.json
+.azure/
+
+# ML/AI
+models/
+*.pkl
+*.h5
+embeddings/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
