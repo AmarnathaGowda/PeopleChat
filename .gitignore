@@ -39,3 +39,4 @@ embeddings/
 tmp/
 temp/
 *.tmp
+resource.txt
