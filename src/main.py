@@ -16,6 +16,9 @@ from prometheus_client import make_asgi_app
 from config.config import settings
 from models.database import init_db
 from utils.logger import setup_logging, get_logger
+from api.v1 import auth
+from fastapi.responses import JSONResponse
+from utils.exceptions import BaseAPIException
 
 # Setup structured logging
 setup_logging()
@@ -59,6 +62,9 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
+
+# add the authentication router
+app.include_router(auth.router, prefix="/api/v1")
 
 # Add CORS middleware
 app.add_middleware(
@@ -184,6 +190,19 @@ async def api_info():
             "metrics": "/metrics"
         }
     }
+
+@app.exception_handler(BaseAPIException)
+async def api_exception_handler(request, exc: BaseAPIException):
+    """Handle custom API exceptions"""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "success": False,
+            "message": exc.message,
+            "error_code": exc.error_code,
+            "details": exc.details
+        }
+    )
 
 
 if __name__ == "__main__":

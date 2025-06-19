@@ -8,8 +8,6 @@ from jose import JWTError, jwt
 import secrets
 
 from config.config import settings
-from utils.exceptions import AuthenticationError
-
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -85,17 +83,15 @@ def decode_access_token(token: str) -> Dict[str, Any]:
         Token payload
         
     Raises:
-        AuthenticationError: If token is invalid
+        JWTError: If token is invalid (let caller handle this)
     """
-    try:
-        payload = jwt.decode(
-            token,
-            settings.secret_key,
-            algorithms=[settings.algorithm]
-        )
-        return payload
-    except JWTError:
-        raise AuthenticationError("Invalid token")
+    # Just decode and return - let the caller handle exceptions
+    payload = jwt.decode(
+        token,
+        settings.secret_key,
+        algorithms=[settings.algorithm]
+    )
+    return payload
 
 
 def generate_session_id() -> str:
