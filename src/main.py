@@ -14,13 +14,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import make_asgi_app
 
 from config.config import settings
+from models.database import init_db
+from utils.logger import setup_logging, get_logger
 
-# Configure structured logging
-logging.basicConfig(
-    level=getattr(logging, settings.log_level),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Setup structured logging
+setup_logging()
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -34,14 +33,20 @@ async def lifespan(app: FastAPI):
     logger.info(f"Debug mode: {settings.debug}")
     logger.info(f"API running at http://{settings.api_host}:{settings.api_port}")
     
-    # Initialize services here (database, cache, etc.)
-    # We'll add these in subsequent steps
+    # Initialize database
+    try:
+        init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        # Don't raise in development to allow API to start
+        if settings.environment == "production":
+            raise
     
     yield
     
     # Shutdown
     logger.info("Shutting down application")
-    # Cleanup resources here
 
 
 # Create FastAPI application
@@ -50,8 +55,8 @@ app = FastAPI(
     version=settings.app_version,
     description="Production-ready multi-agent chatbot with RAG capabilities for leave management, IT declarations, and HR policy Q&A",
     lifespan=lifespan,
-    docs_url="/docs",  # Always enable for development
-    redoc_url="/redoc",  # Always enable for development
+    docs_url="/docs",
+    redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
 
@@ -87,11 +92,28 @@ async def health_check():
     """
     Health check endpoint for monitoring
     """
-    return {
+    health_status = {
         "status": "healthy",
         "version": settings.app_version,
         "environment": settings.environment
     }
+    
+    # Check database connectivity
+    try:
+        from models.database import engine
+        from sqlalchemy import text
+        
+        with engine.connect() as conn:
+            # Use text() for SQLAlchemy 2.0 compatibility
+            result = conn.execute(text("SELECT 1"))
+            result.fetchone()  # Fetch the result
+            
+        health_status["database"] = "connected"
+    except Exception as e:
+        health_status["database"] = f"error: {str(e)}"
+        health_status["status"] = "degraded"
+    
+    return health_status
 
 
 @app.get("/debug/settings", tags=["Debug"])
@@ -124,8 +146,21 @@ async def api_info():
     """
     API information endpoint
     """
+    from models.database import SessionLocal
+    from models.user import User
+    
+    # Get some basic stats
+    db = SessionLocal()
+    try:
+        user_count = db.query(User).count()
+    except:
+        user_count = 0
+    finally:
+        db.close()
+    
     return {
         "api_version": "v1",
+        "total_users": user_count,
         "agents": [
             {
                 "name": "Leave Management Agent",
@@ -154,12 +189,11 @@ async def api_info():
 if __name__ == "__main__":
     import uvicorn
     
-    # Run with uvicorn
     uvicorn.run(
         "main:app",
         host=settings.api_host,
         port=settings.api_port,
-        reload=True,  # Always reload in development
+        reload=True,
         log_level=settings.log_level.lower(),
         access_log=True
     )

@@ -5,14 +5,24 @@ import os
 from typing import Optional
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+load_dotenv()
 
 class settings(BaseSettings):
     """Application settings with environment variable support"""
+
+    # Get the DATABASE_URL from environment variables
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
     
+    # DATABASE_URL = "mssql+pyodbc://sa:Cross%2123@10.0.0.8:1433/peoplechat_agentic_rag_db?driver=ODBC+Driver+17+for+SQL+Server"
+    
+    print(f"Using DATABASE_URL: {DATABASE_URL}")
+
     # Application
     app_name: str = "PeopleChat (Agentic RAG Chatbot)"
-    app_version: str = "0.0.001"
+    app_version: str = "1.0.0"
     debug: bool = False
     environment: str = "development"  # development, staging, production
     
@@ -42,7 +52,7 @@ class settings(BaseSettings):
     azure_cognitive_search_index: str = "hr-policies"
     
     # Database
-    database_url: str = "mssql+pymssql://username:password@server/database"
+    database_url: str = DATABASE_URL
     db_echo: bool = False
     
     # Redis Cache

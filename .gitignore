@@ -30,7 +30,7 @@ local.settings.json
 .azure/
 
 # ML/AI
-models/
+# models/
 *.pkl
 *.h5
 embeddings/

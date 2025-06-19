@@ -4,6 +4,9 @@ uvicorn[standard]==0.32.0
 pydantic==2.9.2
 python-dotenv==1.0.1
 python-multipart==0.0.12
+passlib==1.7.4
+python-jose==3.4.0
+bcrypt==4.3.0
 
 # LLM & RAG - Using compatible versions
 langchain==0.3.7
@@ -22,6 +25,7 @@ redis==5.2.0
 sqlalchemy==2.0.35  # Changed from 2.0.36 to meet langchain-community requirement
 pymssql==2.3.1
 alembic==1.14.0
+pyodbc==5.2.0
 
 # Document Processing
 pypdf==5.1.0
